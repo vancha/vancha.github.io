@@ -1,7 +1,401 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Todo App</title>
+    <style>
+        :root {
+            --color-dark: #333333;
+            --color-medium: #666666;
+            --color-light: #999999;
+            --color-ultralight: #f5f5f5;
+            --color-white: #ffffff;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --radius: 8px;
+            --transition: all 0.2s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            background-color: var(--color-ultralight);
+            color: var(--color-dark);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .user-profile {
+            width: 40px;
+            height: 40px;
+            background-color: var(--color-medium);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-white);
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .search-container {
+            position: relative;
+            margin-bottom: 24px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            border: none;
+            border-radius: var(--radius);
+            background-color: var(--color-white);
+            box-shadow: var(--shadow);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-light);
+        }
+        
+        .filters {
+            display: flex;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .filters::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .filter-btn {
+            background: none;
+            border: none;
+            padding: 8px 16px;
+            margin-right: 12px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--color-medium);
+            white-space: nowrap;
+            transition: var(--transition);
+        }
+        
+        .filter-btn.active {
+            background-color: var(--color-dark);
+            color: var(--color-white);
+        }
+        
+        .tasks-container {
+            margin-bottom: 16px;
+        }
+        
+        .task-group {
+            margin-bottom: 32px;
+        }
+        
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .group-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--color-medium);
+        }
+        
+        .task-count {
+            background-color: var(--color-ultralight);
+            color: var(--color-medium);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .task-card {
+            background-color: var(--color-white);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+        
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .task-checkbox {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--color-light);
+            margin-right: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+        
+        .task-checkbox.checked {
+            background-color: var(--color-dark);
+            border-color: var(--color-dark);
+            position: relative;
+        }
+        
+        .task-checkbox.checked::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 6px;
+            height: 3px;
+            border-left: 2px solid var(--color-white);
+            border-bottom: 2px solid var(--color-white);
+            transform: rotate(-45deg);
+        }
+        
+        .task-content {
+            flex-grow: 1;
+        }
+        
+        .task-title {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        
+        .task-completed .task-title {
+            color: var(--color-light);
+            text-decoration: line-through;
+        }
+        
+        .task-meta {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: var(--color-light);
+        }
+        
+        .task-priority {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .priority-high {
+            background-color: #666666;
+        }
+        
+        .priority-medium {
+            background-color: #999999;
+        }
+        
+        .priority-low {
+            background-color: #cccccc;
+        }
+        
+        .task-due {
+            margin-right: 16px;
+        }
+        
+        .task-category {
+            background-color: var(--color-ultralight);
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        
+        .add-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: var(--color-dark);
+            color: var(--color-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .add-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .search-input {
+                padding: 12px 12px 12px 40px;
+            }
+            
+            .task-card {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
 <body>
-<h1>Hello World</h1>
-<p>Wassup yall</p>
+    <div class="container">
+        <header>
+            <h1>My Tasks</h1>
+            <div class="user-profile">JS</div>
+        </header>
+        
+        <div class="search-container">
+            <div class="search-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </div>
+            <input type="text" class="search-input" placeholder="Search tasks...">
+        </div>
+        
+        <div class="filters">
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Today</button>
+            <button class="filter-btn">Upcoming</button>
+            <button class="filter-btn">Priority</button>
+            <button class="filter-btn">Completed</button>
+        </div>
+        
+        <div class="tasks-container">
+            <div class="task-group">
+                <div class="group-header">
+                    <h2 class="group-title">Today</h2>
+                    <span class="task-count">3</span>
+                </div>
+                
+                <div class="task-card">
+                    <div class="task-checkbox"></div>
+                    <div class="task-content">
+                        <h3 class="task-title">Complete project proposal</h3>
+                        <div class="task-meta">
+                            <span class="task-priority priority-high"></span>
+                            <span class="task-due">Today, 3:00 PM</span>
+                            <span class="task-category">Work</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-card">
+                    <div class="task-checkbox"></div>
+                    <div class="task-content">
+                        <h3 class="task-title">Schedule team meeting</h3>
+                        <div class="task-meta">
+                            <span class="task-priority priority-medium"></span>
+                            <span class="task-due">Today, 5:00 PM</span>
+                            <span class="task-category">Work</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-card task-completed">
+                    <div class="task-checkbox checked"></div>
+                    <div class="task-content">
+                        <h3 class="task-title">Review client feedback</h3>
+                        <div class="task-meta">
+                            <span class="task-priority priority-low"></span>
+                            <span class="task-due">Today, 12:00 PM</span>
+                            <span class="task-category">Work</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="task-group">
+                <div class="group-header">
+                    <h2 class="group-title">Tomorrow</h2>
+                    <span class="task-count">2</span>
+                </div>
+                
+                <div class="task-card">
+                    <div class="task-checkbox"></div>
+                    <div class="task-content">
+                        <h3 class="task-title">Call with marketing team</h3>
+                        <div class="task-meta">
+                            <span class="task-priority priority-high"></span>
+                            <span class="task-due">Tomorrow, 10:00 AM</span>
+                            <span class="task-category">Meeting</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="task-card">
+                    <div class="task-checkbox"></div>
+                    <div class="task-content">
+                        <h3 class="task-title">Prepare weekly report</h3>
+                        <div class="task-meta">
+                            <span class="task-priority priority-medium"></span>
+                            <span class="task-due">Tomorrow, 4:00 PM</span>
+                            <span class="task-category">Admin</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="add-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </button>
 </body>
 </html>
